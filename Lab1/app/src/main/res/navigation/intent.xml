@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/intent"
+    app:startDestination="@id/intent_deepLink">
+
+    <fragment
+        android:id="@+id/intent_deepLink"
+        android:name="com.example.lab1.Fragments.IntentDeepLinkFragment"
+        android:label="Intent Deep Link"/>
+
+</navigation>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/home">
+
+    <include app:graph = "@navigation/home"/>
+    <include app:graph = "@navigation/broadcast_receiver"/>
+    <include app:graph = "@navigation/foreground_service"/>
+    <include app:graph = "@navigation/intent"/>
+    <include app:graph = "@navigation/content_provider"/>
+
+</navigation>

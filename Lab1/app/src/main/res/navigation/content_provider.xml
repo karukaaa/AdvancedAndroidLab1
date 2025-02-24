@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/content_provider"
+    app:startDestination="@id/content">
+
+    <fragment
+        android:id="@id/content"
+        android:name="com.example.lab1.Fragments.ContentProviderFragment"
+        android:label="Content Provider"/>
+</navigation>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/broadcast_receiver"
+    app:startDestination="@id/broadcast">
+    <fragment
+        android:id="@+id/broadcast"
+        android:name="com.example.lab1.Fragments.BroadcastReceiverFragment"
+        android:label="Broadcast Receiver"/>
+</navigation>

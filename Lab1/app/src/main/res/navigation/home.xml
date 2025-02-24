@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/home"
+    app:startDestination="@id/home_fragment">
+
+    <fragment
+        android:id="@+id/home_fragment"
+        android:name="com.example.lab1.Fragments.HomeFragment"
+        android:label="Home"
+        />
+
+    <action
+        android:id="@+id/action_homeFragment_to_intentsFragment"
+        app:destination="@id/intent" />
+
+    <action
+        android:id="@+id/action_homeFragment_to_foregroundServiceFragment"
+        app:destination="@id/foreground_service" />
+
+    <action
+        android:id="@+id/action_homeFragment_to_broadcastReceiverFragment"
+        app:destination="@id/broadcast_receiver" />
+
+    <action
+        android:id="@+id/action_homeFragment_to_contentProviderFragment"
+        app:destination="@id/content_provider" />
+
+</navigation>

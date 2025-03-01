@@ -2,6 +2,8 @@ package com.example.lab1.Fragments
 
 import android.content.pm.PackageManager
 import android.database.Cursor
+import java.util.*
+import java.text.SimpleDateFormat
 import android.os.Bundle
 import android.provider.CalendarContract
 import androidx.fragment.app.Fragment
@@ -14,6 +16,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
+import com.example.lab1.CalendarEvent
 import com.example.lab1.R
 
 class ContentProviderFragment : Fragment() {
@@ -60,9 +63,11 @@ class ContentProviderFragment : Fragment() {
 
     private fun fetchAndPrintEvents() {
 
+        val eventList = mutableListOf<CalendarEvent>()
+
         val currentTime = System.currentTimeMillis()
         val oneWeekLater = currentTime + (7 * 24 * 60 * 60 * 1000) // 7 days from now
-
+        val dateFormat = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
 
         val projection = arrayOf(
             CalendarContract.Events._ID,
@@ -88,14 +93,20 @@ class ContentProviderFragment : Fragment() {
             while (it.moveToNext()) {
                 val eventID = it.getLong(0)
                 val title = it.getStringOrNull(1) ?: "No title"
-                val dtStart = it.getLongOrNull(2)
+                val dtStart = it.getLongOrNull(2) ?: continue
 
-                println("Upcoming Non recurring Event ID: $eventID, Title: $title, Start Time: $dtStart")
+                eventList.add(CalendarEvent(eventID, title, dtStart))
             }
-        } ?: println("No events!")
+        } ?: println("No non recurring events!")
 
 
         //For recurring events
+        val recurringProjection = arrayOf(
+            CalendarContract.Instances._ID,
+            CalendarContract.Instances.TITLE,
+            CalendarContract.Instances.BEGIN,
+        )
+
         val recurringSelection = "${CalendarContract.Instances.CALENDAR_ID} = ?"
         val recurringSelectionArgs = arrayOf(CALENDAR_ID)
         val recurringSortOrder = "${CalendarContract.Instances.BEGIN} ASC"
@@ -107,23 +118,30 @@ class ContentProviderFragment : Fragment() {
             .appendPath(oneWeekLater.toString())
             .build()
 
-        val recuringCursor: Cursor? = requireContext().contentResolver.query(
+        val recurringCursor: Cursor? = requireContext().contentResolver.query(
             uri,
-            projection,
-            recurringSelection,
-            recurringSelectionArgs,
+            recurringProjection,null, null,
+//            recurringSelection,
+//            recurringSelectionArgs,
             recurringSortOrder
         )
 
-        recuringCursor?.use {
+        recurringCursor?.use {
             while (it.moveToNext()) {
                 val eventID = it.getLong(0)
                 val title = it.getStringOrNull(1) ?: "No title"
-                val startTime = it.getLongOrNull(2)
+                val startTime = it.getLongOrNull(2) ?: continue
 
-                println("Upcoming Recurring Event ID: $eventID, Title: $title, Start Time: $startTime")
+                eventList.add(CalendarEvent(eventID, title, startTime))
             }
         } ?: println("No recurring events!")
+
+
+        eventList.sortBy { it.startTime }
+        for (event in eventList) {
+            val formattedDate = dateFormat.format(Date(event.startTime))
+            println("Found Event ID: ${event.id}, Title: ${event.title}, Start Time: $formattedDate")
+        }
     }
 
 }

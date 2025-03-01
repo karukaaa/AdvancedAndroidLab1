@@ -1,6 +1,7 @@
 package com.example.lab1.Fragments
 
 import android.content.pm.PackageManager
+import android.database.Cursor
 import android.os.Bundle
 import android.provider.CalendarContract
 import androidx.fragment.app.Fragment
@@ -11,24 +12,20 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.database.getLongOrNull
+import androidx.core.database.getStringOrNull
 import com.example.lab1.R
 
 class ContentProviderFragment : Fragment() {
 
     companion object {
-        private val EVENT_PROJECTION = arrayOf(
-            CalendarContract.Calendars._ID,
-            CalendarContract.Calendars.CALENDAR_DISPLAY_NAME
-        )
-
-        private const val PROJECTION_DISPLAY_NAME_INDEX = 1
-        private const val PROJECTION_ID_INDEX = 0
+        private const val CALENDAR_ID = "7"
     }
 
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
-                getCalendars()
+                fetchAndPrintEvents()
             } else {
                 Toast.makeText(requireContext(), "Permission denied", Toast.LENGTH_SHORT).show()
             }
@@ -51,7 +48,7 @@ class ContentProviderFragment : Fragment() {
                     android.Manifest.permission.READ_CALENDAR
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
-                getCalendars()
+                fetchAndPrintEvents()
             } else {
                 requestPermissionLauncher.launch(android.Manifest.permission.READ_CALENDAR)
             }
@@ -61,22 +58,72 @@ class ContentProviderFragment : Fragment() {
     }
 
 
-    private fun getCalendars() {
-        val uri = CalendarContract.Calendars.CONTENT_URI
+    private fun fetchAndPrintEvents() {
 
-        val cur = requireActivity().contentResolver.query(
-            uri,
-            EVENT_PROJECTION,
-            null,
-            null,
-            null
+        val currentTime = System.currentTimeMillis()
+        val oneWeekLater = currentTime + (7 * 24 * 60 * 60 * 1000) // 7 days from now
+
+
+        val projection = arrayOf(
+            CalendarContract.Events._ID,
+            CalendarContract.Events.TITLE,
+            CalendarContract.Events.DTSTART,
         )
 
-        while (cur?.moveToNext()==true){
-            val displayName = cur.getString(PROJECTION_DISPLAY_NAME_INDEX)
-            val displayId = cur.getString(PROJECTION_ID_INDEX)
-            println("Calendar found: $displayName id: $displayId")
-        }
-        cur?.close()
+        //For non recurring events
+        val selection =
+            "${CalendarContract.Events.CALENDAR_ID} = ? AND ${CalendarContract.Events.DTSTART} >= ?"
+        val selectionArgs = arrayOf(CALENDAR_ID, currentTime.toString())
+        val sortOrder = "${CalendarContract.Events.DTSTART} ASC"
+
+        val cursor: Cursor? = requireContext().contentResolver.query(
+            CalendarContract.Events.CONTENT_URI,
+            projection,
+            selection,
+            selectionArgs,
+            sortOrder
+        )
+
+        cursor?.use {
+            while (it.moveToNext()) {
+                val eventID = it.getLong(0)
+                val title = it.getStringOrNull(1) ?: "No title"
+                val dtStart = it.getLongOrNull(2)
+
+                println("Upcoming Non recurring Event ID: $eventID, Title: $title, Start Time: $dtStart")
+            }
+        } ?: println("No events!")
+
+
+        //For recurring events
+        val recurringSelection = "${CalendarContract.Instances.CALENDAR_ID} = ?"
+        val recurringSelectionArgs = arrayOf(CALENDAR_ID)
+        val recurringSortOrder = "${CalendarContract.Instances.BEGIN} ASC"
+
+        // Build the URI with the time range
+        val uri = CalendarContract.Instances.CONTENT_URI
+            .buildUpon()
+            .appendPath(currentTime.toString())
+            .appendPath(oneWeekLater.toString())
+            .build()
+
+        val recuringCursor: Cursor? = requireContext().contentResolver.query(
+            uri,
+            projection,
+            recurringSelection,
+            recurringSelectionArgs,
+            recurringSortOrder
+        )
+
+        recuringCursor?.use {
+            while (it.moveToNext()) {
+                val eventID = it.getLong(0)
+                val title = it.getStringOrNull(1) ?: "No title"
+                val startTime = it.getLongOrNull(2)
+
+                println("Upcoming Recurring Event ID: $eventID, Title: $title, Start Time: $startTime")
+            }
+        } ?: println("No recurring events!")
     }
+
 }

@@ -22,6 +22,7 @@ class ContentProviderFragment : Fragment() {
         )
 
         private const val PROJECTION_DISPLAY_NAME_INDEX = 1
+        private const val PROJECTION_ID_INDEX = 0
     }
 
     private val requestPermissionLauncher =
@@ -73,7 +74,8 @@ class ContentProviderFragment : Fragment() {
 
         while (cur?.moveToNext()==true){
             val displayName = cur.getString(PROJECTION_DISPLAY_NAME_INDEX)
-            println("Calendar found: $displayName")
+            val displayId = cur.getString(PROJECTION_ID_INDEX)
+            println("Calendar found: $displayName id: $displayId")
         }
         cur?.close()
     }

@@ -1,37 +1,59 @@
 package com.example.lab1.Fragments
 
-import android.content.BroadcastReceiver
-import android.content.Context.RECEIVER_NOT_EXPORTED
-import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
+import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import com.example.lab1.AirplaneModeReceiver
 import com.example.lab1.R
+import android.provider.Settings
 
 
 class BroadcastReceiverFragment : Fragment() {
 
-    private lateinit var receiver: BroadcastReceiver
+
+    companion object {
+        fun newInstance() = BroadcastReceiverFragment()
+    }
+
+    private lateinit var receiver: AirplaneModeReceiver
+    private lateinit var airplaneModeOnLayout: LinearLayout
+    private lateinit var airplaneModeOffLayout: LinearLayout
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        receiver = AirplaneModeReceiver()
+        receiver = AirplaneModeReceiver { isAirplaneModeOn ->
+            updateUI(isAirplaneModeOn)
+        }
+
+        val intentFilter = IntentFilter("android.intent.action.AIRPLANE_MODE")
+        val flag = ContextCompat.RECEIVER_EXPORTED
+        ContextCompat.registerReceiver(requireContext(), receiver, intentFilter, flag)
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_broadcast_receiver, container, false)
-    }
+        val view = inflater.inflate(R.layout.fragment_broadcast_receiver, container, false)
 
+        airplaneModeOnLayout = view.findViewById(R.id.airplane_mode_on)
+        airplaneModeOffLayout = view.findViewById(R.id.airplane_mode_off)
+
+
+        val isAirplaneModeOn = Settings.Global.getInt(
+            requireContext().contentResolver,
+            Settings.Global.AIRPLANE_MODE_ON, 0
+        ) != 0
+        updateUI(isAirplaneModeOn)
+
+        return view
+    }
     override fun onResume() {
         super.onResume()
         val intentFilter = IntentFilter("android.intent.action.AIRPLANE_MODE")
@@ -39,12 +61,21 @@ class BroadcastReceiverFragment : Fragment() {
         ContextCompat.registerReceiver(requireContext(), receiver, intentFilter, flag)
     }
 
+
     override fun onPause() {
         super.onPause()
         requireContext().unregisterReceiver(receiver)
     }
 
-    companion object {
-        fun newInstance() = BroadcastReceiverFragment()
+
+    private fun updateUI(isAirplaneModeOn: Boolean) {
+        if (isAirplaneModeOn) {
+            airplaneModeOnLayout.visibility = View.VISIBLE
+            airplaneModeOffLayout.visibility = View.GONE
+        } else {
+            airplaneModeOnLayout.visibility = View.GONE
+            airplaneModeOffLayout.visibility = View.VISIBLE
+        }
     }
+
 }

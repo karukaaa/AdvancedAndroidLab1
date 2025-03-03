@@ -16,7 +16,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
+import androidx.recyclerview.widget.RecyclerView
 import com.example.lab1.CalendarEvent
+import com.example.lab1.CalendarEventAdapter
 import com.example.lab1.R
 
 class ContentProviderFragment : Fragment() {
@@ -25,10 +27,12 @@ class ContentProviderFragment : Fragment() {
         private const val CALENDAR_ID = "7"
     }
 
+    private lateinit var adapter: CalendarEventAdapter
+
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
-                fetchAndPrintEvents()
+                fetchAndPrintEvents(adapter)
             } else {
                 Toast.makeText(requireContext(), "Permission denied", Toast.LENGTH_SHORT).show()
             }
@@ -44,6 +48,10 @@ class ContentProviderFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_content_provider, container, false)
 
+        val recyclerView = view.findViewById<RecyclerView>(R.id.calendar_event_recycler_view)
+        adapter = CalendarEventAdapter()
+        recyclerView.adapter = adapter
+
         val button: Button = view.findViewById(R.id.button_calendar)
         button.setOnClickListener {
             if (ContextCompat.checkSelfPermission(
@@ -51,7 +59,7 @@ class ContentProviderFragment : Fragment() {
                     android.Manifest.permission.READ_CALENDAR
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
-                fetchAndPrintEvents()
+                fetchAndPrintEvents(adapter)
             } else {
                 requestPermissionLauncher.launch(android.Manifest.permission.READ_CALENDAR)
             }
@@ -61,7 +69,7 @@ class ContentProviderFragment : Fragment() {
     }
 
 
-    private fun fetchAndPrintEvents() {
+    private fun fetchAndPrintEvents(adapter: CalendarEventAdapter) {
 
         val eventList = mutableListOf<CalendarEvent>()
 
@@ -107,8 +115,6 @@ class ContentProviderFragment : Fragment() {
             CalendarContract.Instances.BEGIN,
         )
 
-        val recurringSelection = "${CalendarContract.Instances.CALENDAR_ID} = ?"
-        val recurringSelectionArgs = arrayOf(CALENDAR_ID)
         val recurringSortOrder = "${CalendarContract.Instances.BEGIN} ASC"
 
         // Build the URI with the time range
@@ -121,8 +127,6 @@ class ContentProviderFragment : Fragment() {
         val recurringCursor: Cursor? = requireContext().contentResolver.query(
             uri,
             recurringProjection,null, null,
-//            recurringSelection,
-//            recurringSelectionArgs,
             recurringSortOrder
         )
 
@@ -142,6 +146,9 @@ class ContentProviderFragment : Fragment() {
             val formattedDate = dateFormat.format(Date(event.startTime))
             println("Found Event ID: ${event.id}, Title: ${event.title}, Start Time: $formattedDate")
         }
+
+        adapter.submitList(eventList)
+
     }
 
 }

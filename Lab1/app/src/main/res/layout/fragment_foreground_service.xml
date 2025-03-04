@@ -5,11 +5,26 @@
     android:orientation="vertical"
     android:gravity="center">
 
-    <Button
-        android:id="@+id/btnStart"
+    <TextView
+        android:id="@+id/songInfo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Start" />
+        android:textStyle="italic"
+        android:text="Akeboshi - Wind"
+        android:textSize="24dp"
+        android:layout_marginBottom="20dp"/>
+
+    <Button
+        android:id="@+id/btnPlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Play" />
+
+    <Button
+        android:id="@+id/btnPause"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pause" />
 
 
     <Button
@@ -17,4 +32,5 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Stop" />
+
 </LinearLayout>

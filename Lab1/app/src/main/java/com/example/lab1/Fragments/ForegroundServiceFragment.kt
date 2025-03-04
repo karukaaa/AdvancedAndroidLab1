@@ -1,20 +1,21 @@
 package com.example.lab1.Fragments
 
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.Toast
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.example.lab1.MusicPlayerService
 import com.example.lab1.R
 
 
 class ForegroundServiceFragment : Fragment() {
+    private lateinit var songTitleTextView: TextView
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -25,13 +26,13 @@ class ForegroundServiceFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val playButton: Button = view.findViewById(R.id.btnStart)
-        val stopButton: Button = view.findViewById(R.id.btnStop)
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 101)
         }
 
+        val playButton: Button = view.findViewById(R.id.btnPlay)
+        val stopButton: Button = view.findViewById(R.id.btnStop)
+        val pauseButton: Button = view.findViewById(R.id.btnPause)
 
         playButton.setOnClickListener {
             sendMusicCommand("PLAY")
@@ -40,9 +41,18 @@ class ForegroundServiceFragment : Fragment() {
         stopButton.setOnClickListener {
             sendMusicCommand("STOP")
         }
+
+        pauseButton.setOnClickListener {
+            sendMusicCommand("PAUSE")
+        }
+
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
@@ -53,6 +63,5 @@ class ForegroundServiceFragment : Fragment() {
         }
         requireContext().startService(intent)
     }
-
 
 }

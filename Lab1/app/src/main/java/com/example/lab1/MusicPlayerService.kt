@@ -7,6 +7,7 @@ import android.media.MediaPlayer
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import java.io.IOException
 
 class MusicPlayerService : Service() {
 
@@ -37,23 +38,27 @@ class MusicPlayerService : Service() {
 
 
 
-
-
     private fun playMusic() {
         if (mediaPlayer == null) {
-            mediaPlayer = MediaPlayer.create(this, R.raw.akeboshi_wind)
-            mediaPlayer?.apply {
-                start()
-                setOnCompletionListener {
-                    stopMusic()
+            mediaPlayer = MediaPlayer()
+            try {
+                val assetFileDescriptor = assets.openFd("akeboshi_wind.mp3") // Change to your file name
+                mediaPlayer?.apply {
+                    setDataSource(assetFileDescriptor.fileDescriptor, assetFileDescriptor.startOffset, assetFileDescriptor.length)
+                    prepare() // Prepare MediaPlayer
+                    start()
+                    setOnCompletionListener {
+                        stopMusic()
+                    }
                 }
+            } catch (e: IOException) {
+                e.printStackTrace()
             }
-            android.util.Log.d("MusicPlayerService", "Starting foreground service") // ✅ Debug Log
-            startForeground(1, createNotification()) // ✅ Start foreground service
         } else {
             mediaPlayer?.start()
         }
     }
+
 
 
 
@@ -75,25 +80,14 @@ class MusicPlayerService : Service() {
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Music Player")
-            .setContentText("Playing: akeboshi_wind.mp3")
+            .setContentText("Playing: music")
             .setSmallIcon(R.drawable.ic_music)
             .setPriority(NotificationCompat.PRIORITY_HIGH) // 🚀 Try HIGH priority
-            .setWhen(System.currentTimeMillis()) // ⏳ Add timestamp
             .addAction(R.drawable.ic_play, "Play", playPending)
             .addAction(R.drawable.ic_stop, "Stop", stopPending)
             .setOngoing(true)
             .build()
     }
-
-//    private fun createNotification(): Notification {
-//        return NotificationCompat.Builder(this, CHANNEL_ID)
-//            .setContentTitle("Music Player")
-//            .setContentText("Playing music")
-//            .setSmallIcon(R.drawable.ic_music)
-//            .setPriority(NotificationCompat.PRIORITY_HIGH)
-//            .build()
-//    }
-
 
 
 

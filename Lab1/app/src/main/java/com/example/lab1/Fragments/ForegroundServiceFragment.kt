@@ -1,6 +1,8 @@
 package com.example.lab1.Fragments
 
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -26,10 +28,13 @@ class ForegroundServiceFragment : Fragment() {
         val playButton: Button = view.findViewById(R.id.btnStart)
         val stopButton: Button = view.findViewById(R.id.btnStop)
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 101)
+        }
+
 
         playButton.setOnClickListener {
             sendMusicCommand("PLAY")
-            Toast.makeText(requireContext(), "Playing started", Toast.LENGTH_SHORT).show()
         }
 
         stopButton.setOnClickListener {
@@ -37,11 +42,17 @@ class ForegroundServiceFragment : Fragment() {
         }
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+
+
     private fun sendMusicCommand(action: String) {
         val intent = Intent(requireContext(), MusicPlayerService::class.java).apply {
             this.action = action
         }
         requireContext().startService(intent)
     }
+
 
 }

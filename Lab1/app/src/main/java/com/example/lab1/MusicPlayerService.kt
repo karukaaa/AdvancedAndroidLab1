@@ -4,9 +4,9 @@ import android.app.Service
 import android.app.*
 import android.content.Intent
 import android.media.MediaPlayer
+import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import java.io.IOException
 
 class MusicPlayerService : Service() {
 
@@ -15,7 +15,10 @@ class MusicPlayerService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+
         createNotificationChannel()
+
+
     }
 
     override fun onBind(p0: Intent?): IBinder? {
@@ -23,41 +26,42 @@ class MusicPlayerService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(1, createNotification())
-
-        when (intent?.action) {
-            "PLAY" -> playMusic()
-            "STOP" -> stopMusic()
+        if (intent?.action == "PLAY") {
+            startForeground(1, createNotification()) // Ensure foreground mode starts
+            playMusic()
+        } else if (intent?.action == "STOP") {
+            stopMusic()
         }
-
         return START_STICKY
     }
 
 
+
+
+
     private fun playMusic() {
-        stopMusic()
-        mediaPlayer = MediaPlayer()
-        try {
-            val assetFileDescriptor = assets.openFd("akeboshi_wind.mp3")
+        if (mediaPlayer == null) {
+            mediaPlayer = MediaPlayer.create(this, R.raw.akeboshi_wind)
             mediaPlayer?.apply {
-                setDataSource(
-                    assetFileDescriptor.fileDescriptor,
-                    assetFileDescriptor.startOffset,
-                    assetFileDescriptor.length
-                )
-                prepare()
                 start()
+                setOnCompletionListener {
+                    stopMusic()
+                }
             }
-        } catch (e: IOException) {
-            e.printStackTrace()
+            android.util.Log.d("MusicPlayerService", "Starting foreground service") // ✅ Debug Log
+            startForeground(1, createNotification()) // ✅ Start foreground service
+        } else {
+            mediaPlayer?.start()
         }
     }
+
 
 
     private fun stopMusic() {
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
+        stopForeground(true) // ✅ Remove notification
         stopSelf()
     }
 
@@ -71,26 +75,40 @@ class MusicPlayerService : Service() {
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Music Player")
+            .setContentText("Playing: akeboshi_wind.mp3")
             .setSmallIcon(R.drawable.ic_music)
+            .setPriority(NotificationCompat.PRIORITY_HIGH) // 🚀 Try HIGH priority
+            .setWhen(System.currentTimeMillis()) // ⏳ Add timestamp
             .addAction(R.drawable.ic_play, "Play", playPending)
             .addAction(R.drawable.ic_stop, "Stop", stopPending)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .build()
     }
 
+//    private fun createNotification(): Notification {
+//        return NotificationCompat.Builder(this, CHANNEL_ID)
+//            .setContentTitle("Music Player")
+//            .setContentText("Playing music")
+//            .setSmallIcon(R.drawable.ic_music)
+//            .setPriority(NotificationCompat.PRIORITY_HIGH)
+//            .build()
+//    }
+
+
+
+
     private fun createNotificationChannel() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 "Music Playback",
-                NotificationManager.IMPORTANCE_LOW
+                NotificationManager.IMPORTANCE_HIGH // 🚀 Change to HIGH
             )
             val manager = getSystemService(NotificationManager::class.java)
             manager?.createNotificationChannel(channel)
         }
-    }
 
+    }
 
     override fun onDestroy() {
         stopMusic()

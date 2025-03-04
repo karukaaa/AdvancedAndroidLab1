@@ -13,8 +13,6 @@ import com.example.lab1.R
 
 
 class ForegroundServiceFragment : Fragment() {
-    private val track = "akeboshi_wind.mp3"
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -30,10 +28,20 @@ class ForegroundServiceFragment : Fragment() {
 
 
         playButton.setOnClickListener {
-            }
+            sendMusicCommand("PLAY")
+            Toast.makeText(requireContext(), "Playing started", Toast.LENGTH_SHORT).show()
+        }
 
         stopButton.setOnClickListener {
-             }
+            sendMusicCommand("STOP")
+        }
+    }
+
+    private fun sendMusicCommand(action: String) {
+        val intent = Intent(requireContext(), MusicPlayerService::class.java).apply {
+            this.action = action
+        }
+        requireContext().startService(intent)
     }
 
 }
